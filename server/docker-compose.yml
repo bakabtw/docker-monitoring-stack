@@ -59,9 +59,30 @@ services:
       # - "13301:13301/tcp" # Forwarder data
       # - "13302:13302/tcp" # Forwarder config
 
+  prometheus:
+    image: prom/prometheus:main
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+      - grafana:/var/lib/grafana
+    ports:
+      - 3000:3000
+
 volumes:
   uptime-kuma:
   mongodb:
   datanode:
   graylog-data:
   graylog-journal:
+  prometheus:
+  grafana:
