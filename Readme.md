@@ -14,6 +14,12 @@ It's a production ready demonstration featuring monitoring for web applications.
 
 # Quickstart
 ## Server
+- Tweak `sysctl`
+```bash
+echo 'vm.max_map_count=262144' | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+```
+
 - Clone the repo
 ```bash
 git clone https://github.com/bakabtw/docker-monitoring-stack
