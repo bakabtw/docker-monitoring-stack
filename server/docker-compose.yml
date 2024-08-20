@@ -1,0 +1,60 @@
+version: "3.7"
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:alpine
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - ./uptime-kuma:/app/data
+    ports:
+      - "3001:3001"
+
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    restart: unless-stopped
+    volumes:
+      - ./mongodb:/data/db
+
+  datanode:
+    image: graylog/graylog-datanode:6.0
+    container_name: datanode
+    restart: unless-stopped
+    hostname: datanode
+    environment:
+      - GRAYLOG_DATANODE_NODE_ID_FILE=/var/lib/graylog-datanode/node-id
+      - GRAYLOG_DATANODE_PASSWORD_SECRET=2M0jOuQ1URJ1vqJJcTCMOlnmQqEqDWSNI6OK1gSlPrV3uFjgJpsLjCXvFhm40R8awzcdWp2m6e7TPLZVZBhPlBdkXauyopPI
+      - GRAYLOG_DATANODE_ROOT_PASSWORD_SHA2=4aa5348cc28b96c1bca9669c2965cbba4f4d8c91fa2624a556cace9789ac8464
+      - GRAYLOG_DATANODE_MONGODB_URI=mongodb://mongodb:27017/graylog
+    volumes:
+      - ./datanode:/var/lib/graylog-datanode
+
+  graylog:
+    image: graylog/graylog:6.0
+    container_name: graylog
+    restart: unless-stopped
+    hostname: graylog
+    entrypoint: /usr/bin/tini --  /docker-entrypoint.sh
+    environment:
+      - GRAYLOG_NODE_ID_FILE=/usr/share/graylog/data/data/node-id
+      - GRAYLOG_PASSWORD_SECRET=2M0jOuQ1URJ1vqJJcTCMOlnmQqEqDWSNI6OK1gSlPrV3uFjgJpsLjCXvFhm40R8awzcdWp2m6e7TPLZVZBhPlBdkXauyopPI
+      - GRAYLOG_ROOT_PASSWORD_SHA2=4aa5348cc28b96c1bca9669c2965cbba4f4d8c91fa2624a556cace9789ac8464
+      - GRAYLOG_HTTP_BIND_ADDRESS=0.0.0.0:9000
+      - GRAYLOG_HTTP_EXTERNAL_URI=https://graylog.secureactive.com/
+      - GRAYLOG_MONGODB_URI=mongodb://mongodb:27017/graylog
+    volumes:
+      - ./graylog-data:/usr/share/graylog/data/data
+      - ./ graylog-journal:/usr/share/graylog/data/journal
+    ports:
+      - "9000:9000"  # WebUI
+      # - "5044:5044/tcp"   # Beats
+      - "5140:5140/udp"   # Syslog
+      - "5140:5140/tcp"   # Syslog
+      # - "5555:5555/tcp"   # RAW TCP
+      # - "5555:5555/udp"   # RAW UDP
+      # - "9000:9000/tcp"   # Server API
+      - "12201:12201/tcp" # GELF TCP
+      - "12201:12201/udp" # GELF UDP
+      # - "13301:13301/tcp" # Forwarder data
+      # - "13302:13302/tcp" # Forwarder config
